@@ -1,0 +1,13 @@
+{
+  "name": "SeamStoryUtils",
+  
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "SeamStoryUtils": {
+        "$path": "SeamStoryUtils"
+      }
+    }
+  }
+}
