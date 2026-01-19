@@ -12,8 +12,8 @@ local Seam = require(script.Parent.Seam)
 --[=[
     Returns reactive Seam value states based on the generic controls of a UI labs story.
 
-    @prop Scope Scope -- The Seam scope
-    @prop Props {[any] : any} -- The `props` table passed into the generic story
+    @param Scope Scope -- The Seam scope
+    @param Props {[any] : any} -- The `props` table passed into the generic story
     @return {[string] : Seam.ValueInstance<any>} -- The dictionary of controls mapped to value states
 ]=]
 
@@ -48,7 +48,7 @@ end
 --[=[
     Returns a function that cleans up the scope
 
-    @prop Scope Scope -- The Seam scope
+    @param Scope Scope -- The Seam scope
     @return () -> nil -- The wrapped cleanup function
 ]=]
 
