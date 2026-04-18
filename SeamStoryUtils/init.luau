@@ -6,23 +6,61 @@
 
 local SeamStoryUtils = {}
 
--- Imports
-local Seam = require(script.Parent.Seam)
+--Types
+type BaseState<T> = {
+    Value : T,
+}
+
+type ValueInstance<T> = {
+    Changed : RBXScriptSignal,
+} & BaseState<T>
+
+type SpringInstance<T> = {
+    Velocity : T,
+    Target : T
+} & BaseState<T>
+
+type TweenInstance<T> = {
+    Target : T
+} & BaseState<T>
+
+type RenderedInstance<T> = {} & BaseState<T>
+type ComputedInstance<T> = {} & BaseState<T>
+type ForPairsInstance<T> = {} & BaseState<T>
+
+type ScopeInstance = {
+    New : (self : ScopeInstance, Class : string | Instance | {[string] : any?}, Properties : {[any] : any}, From : any?) -> Instance,
+    Rendered : (self : ScopeInstance, Callback : (number) -> any?) -> RenderedInstance<any>,
+    Value : (self : ScopeInstance, InitialValue : any) -> ValueInstance<any>,
+    Spring : (self : ScopeInstance, Value : BaseState<any> | any, Speed : number, Dampening : number) -> SpringInstance<any>,
+    Tween : (self : ScopeInstance, Value : BaseState<any> | any, TweenInformation : TweenInfo) -> TweenInstance<any>,
+    Computed : (self : ScopeInstance, Callback : ((Value : ValueInstance<any>) -> any) -> any?) -> ComputedInstance<any>,
+    ForPairs : (self : ScopeInstance, TrackedValue : ValueInstance<any>, Callback : ((Value : ValueInstance<any>) -> any) -> any?) -> ForPairsInstance<any>,
+    OnChanged : (self : ScopeInstance, Object : any, Callback : (PropertyChanged : string, NewValue : any) -> nil) -> RBXScriptConnection,
+    OnAttributeChanged : (self : ScopeInstance, AttributeName : string) -> (...any) -> RBXScriptConnection,
+    OnEvent : (self : ScopeInstance, EventName : string) -> (...any) -> RBXScriptConnection,
+    OnAttached : (self : ScopeInstance, Object : any, Callback : (AttachedInstance : Instance) -> nil) -> RBXScriptConnection,
+
+    InnerScope : (self : ScopeInstance, ScopedObjects : {[string] : any}?) -> ScopeInstance,
+    AddObject : <T>(self : ScopeInstance, Object : T) -> (T),
+    RemoveObject : (self : ScopeInstance, Object : any) -> (),
+    Destroy : (self : ScopeInstance) -> (),
+}
 
 --[=[
     Returns reactive Seam value states based on the generic controls of a UI labs story.
 
     @param Scope Scope -- The Seam scope
     @param Props {[any] : any} -- The `props` table passed into the generic story
-    @return {[string] : Seam.ValueInstance<any>} -- The dictionary of controls mapped to value states
+    @return {[string] : ValueInstance<any>} -- The dictionary of controls mapped to value states
 ]=]
 
-function SeamStoryUtils.GetValuesFromControls(Scope : Seam.Scope, Props : {[any] : any}) : {[string] : Seam.ValueInstance<any>}
+function SeamStoryUtils.GetValuesFromControls(Scope : ScopeInstance, Props : {[any] : any}) : {[string] : ValueInstance<any>}
     if not Scope then
         error("Scope required to get values from controls")
     end
 
-    local Values : {[string] : Seam.ValueInstance<any>} = {}
+    local Values : {[string] : ValueInstance<any>} = {}
 
     for Index, ControlValue in Props.controls do
         Values[Index] = Scope:Value(ControlValue)
@@ -52,7 +90,7 @@ end
     @return () -> nil -- The wrapped cleanup function
 ]=]
 
-function SeamStoryUtils.WrappedScopeCleanup(Scope : Seam.Scope) : () -> nil
+function SeamStoryUtils.WrappedScopeCleanup(Scope : ScopeInstance) : () -> nil
     return function()
         Scope:Destroy()
     end
